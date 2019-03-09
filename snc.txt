@@ -1,0 +1,5 @@
+SuperfectaS10mn$
+===
+Loaded 355585 wines to scrap reviews = 1031724-673616 2:50 pm 8/03
+Loaded 345973 wines to scrap reviews = 1031724-682702
+===
