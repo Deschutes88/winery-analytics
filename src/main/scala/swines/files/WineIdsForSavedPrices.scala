@@ -1,16 +1,18 @@
-package swines.streams
+package swines.files
 
 import java.nio.file.Paths
 
 import akka.stream.alpakka.file.scaladsl.Directory
 import akka.stream.scaladsl.Source
-import swines.data.cfg
+import swines.cfg
 
 object WineIdsForSavedPrices {
 
   def wineIdsForSavedPrices(dir: String = cfg.files.warehouse): Source[Int, _] = {
     val regWinePricesFilename = "wine-(\\d+)-prices-?.json".r
-    Directory.ls(Paths.get(dir)).map(_.getFileName.toString).filter(_.matches(regWinePricesFilename.regex))
+    Directory.ls(Paths.get(dir))
+      .map(_.getFileName.toString)
+      .filter(_.matches(regWinePricesFilename.regex))
       .map { filename =>
         filename match {
           case regWinePricesFilename(id) => Some(id.toInt)

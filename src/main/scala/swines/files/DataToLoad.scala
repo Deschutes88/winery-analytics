@@ -1,11 +1,11 @@
-package swines.streams
+package swines.files
 
 import java.nio.file.Paths
 
 import akka.stream.IOResult
 import akka.stream.scaladsl.{FileIO, Framing, Source}
 import akka.util.ByteString
-import swines.data.cfg
+import swines.cfg
 
 import concurrent.Future
 

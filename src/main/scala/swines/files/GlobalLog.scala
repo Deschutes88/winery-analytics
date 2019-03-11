@@ -1,4 +1,4 @@
-package swines.streams
+package swines.files
 
 import java.nio.file.Paths
 import java.util.concurrent.CompletionStage
@@ -6,7 +6,7 @@ import java.util.concurrent.CompletionStage
 import akka.stream.IOResult
 import akka.stream.scaladsl.{FileIO, Framing, Source}
 import akka.util.ByteString
-import swines.data.cfg
+import swines.cfg
 
 object GlobalLog {
   val regWineIdFromGlobalLog = "wine \\[(\\d+)\\] HANDLED with (\\d+) review pages".r

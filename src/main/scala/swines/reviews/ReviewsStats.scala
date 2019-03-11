@@ -4,8 +4,7 @@ import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Sink
 import com.typesafe.scalalogging.Logger
-import swines.data.cfg
-import swines.streams
+import swines.{cfg, files}
 
 object ReviewsStats {
   val myGlobalLog = Logger("MyGlobalLog")
@@ -15,11 +14,11 @@ object ReviewsStats {
     implicit val system = ActorSystem("SwinesActorSystem")
     implicit val materializer = ActorMaterializer()
 
-    val wineIdsFromGlobalLog = streams.GlobalLog.succesfullWineIdsFromGlobalLog()
-      .concat(streams.GlobalLog.succesfullWineIdsFromGlobalLog(cfg.files.myGlobalLog)).runWith(Sink.seq)
+    val wineIdsFromGlobalLog = files.GlobalLog.succesfullWineIdsFromGlobalLog()
+      .concat(files.GlobalLog.succesfullWineIdsFromGlobalLog(cfg.files.myGlobalLog)).runWith(Sink.seq)
 
 
-    val winesIdInDataToLoad = streams.DataToLoad.dataToLoad(cfg.files.dataToLoad).map(_.wineId).runWith(Sink.seq)
+    val winesIdInDataToLoad = files.DataToLoad.dataToLoad(cfg.files.dataToLoad).map(_.wineId).runWith(Sink.seq)
       .map { ids => ; ids }
 
     val r = for {

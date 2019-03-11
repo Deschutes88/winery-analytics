@@ -14,14 +14,14 @@ import akka.http.scaladsl.settings.{ClientConnectionSettings, ConnectionPoolSett
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.{FileIO, Sink, Source}
 import akka.util.ByteString
-import swines.data.cfg
+import swines.cfg
 import swines.proxies.ClientJson.{Error, JsonOk}
 
 import concurrent.duration._
 import scala.concurrent.Future
 import scala.io.StdIn
 import scala.util.{Failure, Success}
-import swines.streams.Proxies._
+import swines.files.Proxies._
 
 object CheckProxies {
 

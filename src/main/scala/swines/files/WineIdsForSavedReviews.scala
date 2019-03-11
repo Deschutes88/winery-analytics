@@ -1,4 +1,4 @@
-package swines.streams
+package swines.files
 
 import java.nio.file.Paths
 

@@ -6,8 +6,8 @@ import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.{FileIO, Framing, Source}
 import akka.util.ByteString
-import swines.data.cfg
-import swines.streams.GlobalLog
+import swines.cfg
+import swines.files.GlobalLog
 
 import scala.util.{Failure, Success}
 
@@ -29,7 +29,7 @@ object CleanMyGlobalLog extends App {
     .intersperse(ByteString("\n"))
     .runReduce(_ ++ _)
     .flatMap{ byteString =>
-        Source.single(byteString).runWith(FileIO.toPath(Paths.get(cfg.files.myGlobalLog)))
+        Source.single(byteString ++ ByteString("\n")).runWith(FileIO.toPath(Paths.get(cfg.files.myGlobalLog)))
     }
     //    .runWith(FileIO.toPath(Paths.get(cfg.files.myGlobalLog)))
     .onComplete(_ => system.terminate())

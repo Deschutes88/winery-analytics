@@ -1,6 +1,6 @@
 name := "swines"
 
-version := "1.0"
+version := "1.01"
 
 scalaVersion := "2.12.6"
 

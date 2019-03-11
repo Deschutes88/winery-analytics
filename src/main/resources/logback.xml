@@ -1,5 +1,6 @@
 <configuration>
 
+    <!--<appender name="MyGlobalLog" class="ch.qos.logback.classic.AsyncAppender">-->
     <appender name="MyGlobalLog" class="ch.qos.logback.core.FileAppender">
         <file>global-.log</file>
         <append>true</append>
@@ -9,6 +10,7 @@
         </encoder>
     </appender>
 
+    <!--<appender name="ReviewsSession" class="ch.qos.logback.classic.AsyncAppender">-->
     <appender name="ReviewsSession" class="ch.qos.logback.core.FileAppender">
         <file>reviews-session-.log</file>
         <param name="Append" value="false" />
@@ -19,11 +21,12 @@
         </encoder>
     </appender>
 
-    <appender name="PriceScraper" class="ch.qos.logback.core.FileAppender">
+    <!--<appender name="PriceScraper" class="ch.qos.logback.classic.AsyncAppender">-->
+    <appender name="PricesScraper" class="ch.qos.logback.core.FileAppender">
         <file>price-scraper-.log</file>
         <append>false</append>
         <encoder>
-            <pattern>%msg%n</pattern>
+            <pattern>%level%t %msg%n</pattern>
             <!--<pattern>%date %level [%thread] %logger{10} [%file:%line] %msg%n</pattern>-->
         </encoder>
     </appender>
@@ -34,17 +37,22 @@
         </encoder>
     </appender>
 
-    <logger name="MyGlobalLog" level="info" additivity="true">
-    <!--<logger name="MyGlobalLog" level="info" additivity="false">-->
+    <!--<logger name="MyGlobalLog" level="info" additivity="true">-->
+    <logger name="MyGlobalLog" level="info" additivity="false">
         <appender-ref ref="MyGlobalLog" />
-        <appender-ref ref="ReviewsSession" />
-        <!--<appender-ref ref="STDOUT" />-->
-    </logger>
-
-    <logger name="PriceScraper" level="info">
-        <appender-ref ref="PriceScraper" />
+        <!--<appender-ref ref="ReviewsSession" />-->
         <appender-ref ref="STDOUT" />
     </logger>
+
+    <logger name="PricesScraper" level="info" additivity="false">
+        <appender-ref ref="PricesScraper" />
+        <appender-ref ref="STDOUT" />
+    </logger>
+
+    <!--<logger name="FailedReviews" level="info" additivity="false">-->
+        <!--<appender-ref ref="FailedReviews" />-->
+        <!--<appender-ref ref="STDOUT" />-->
+    <!--</logger>-->
 
     <root level="debug">
         <appender-ref ref="STDOUT" />
