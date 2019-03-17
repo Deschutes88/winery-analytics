@@ -1,0 +1,10 @@
+Manifest-Version: 1.0
+Implementation-Title: Circe generic
+Implementation-Version: 0.10.0
+Specification-Vendor: io.circe
+Specification-Title: Circe generic
+Implementation-Vendor-Id: io.circe
+Specification-Version: 0.10.0
+Implementation-URL: https://github.com/circe/circe
+Implementation-Vendor: io.circe
+

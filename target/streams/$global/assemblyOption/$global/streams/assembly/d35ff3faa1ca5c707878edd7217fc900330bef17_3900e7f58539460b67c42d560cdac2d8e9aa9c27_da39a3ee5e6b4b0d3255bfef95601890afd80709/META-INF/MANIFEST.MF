@@ -1,0 +1,11 @@
+Manifest-Version: 1.0
+Implementation-Title: akka-stream-alpakka-file
+Automatic-Module-Name: akka.stream.alpakka.file
+Implementation-Version: 1.0-M3
+Specification-Vendor: Lightbend Inc.
+Specification-Title: akka-stream-alpakka-file
+Implementation-Vendor-Id: com.lightbend.akka
+Specification-Version: 1.0-M3
+Implementation-URL: https://doc.akka.io/docs/alpakka/current/
+Implementation-Vendor: Lightbend Inc.
+

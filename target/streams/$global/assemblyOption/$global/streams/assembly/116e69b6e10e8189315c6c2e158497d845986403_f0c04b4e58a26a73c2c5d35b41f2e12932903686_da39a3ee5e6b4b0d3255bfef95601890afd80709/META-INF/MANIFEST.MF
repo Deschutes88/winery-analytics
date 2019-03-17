@@ -1,0 +1,10 @@
+Manifest-Version: 1.0
+Implementation-Title: Cats core
+Implementation-Version: 1.5.0
+Specification-Vendor: org.typelevel
+Specification-Title: Cats core
+Implementation-Vendor-Id: org.typelevel
+Specification-Version: 1.5.0
+Implementation-URL: https://github.com/typelevel/cats
+Implementation-Vendor: org.typelevel
+
