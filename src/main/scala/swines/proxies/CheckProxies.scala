@@ -21,7 +21,7 @@ import concurrent.duration._
 import scala.concurrent.Future
 import scala.io.StdIn
 import scala.util.{Failure, Success}
-import swines.files.Proxies._
+import Proxies._
 
 object CheckProxies {
 
@@ -32,12 +32,11 @@ object CheckProxies {
     val dateTimeFormatter = DateTimeFormatter
       .ofPattern("yyyy-MM-dd HH:mm:ss").withZone(ZoneId.systemDefault());
 
-    val proxies = allProxies("proxy-list.txt")
-      .concat(allProxies())
+    val proxies = allProxies(cfg.files.uncheckedProxyList)
       .runWith(Sink.seq)
       .map { proxies =>
         val unique = proxies.distinct
-        println(s"Loaded ${unique.length} proxies to test.")
+        println(s"Loaded ${unique.length} proxies to test from `${cfg.files.uncheckedProxyList}`.")
         unique
       }
 
@@ -60,7 +59,7 @@ object CheckProxies {
       .filter(_.nonEmpty)
       .runWith(Sink.seq)
       .map { p =>
-        println(s"There are ${p.length} working proxies")
+        println(s"There are ${p.length} working proxies `${cfg.files.uncheckedProxyList}`")
         p
       }
 
@@ -68,7 +67,7 @@ object CheckProxies {
       .mapConcat(identity)
       .runWith(FileIO.toPath(Paths.get(cfg.files.checkedProxyList)))
       .onComplete { _ =>
-        println(s"Finished! Checked proxies is written in ${cfg.files.checkedProxyList}")
+        println(s"Finished! Checked proxies is written in `${cfg.files.checkedProxyList}`")
         system.terminate()
       }
 

@@ -7,7 +7,6 @@ import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.{FileIO, Framing, Source}
 import akka.util.ByteString
 import swines.cfg
-import swines.files.GlobalLog
 
 import scala.util.{Failure, Success}
 

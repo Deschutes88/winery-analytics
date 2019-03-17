@@ -29,12 +29,38 @@ object ClientJson {
     val settings = ConnectionPoolSettings(system)
       .withConnectionSettings(ClientConnectionSettings(system)
         .withTransport(httpsProxyTransport)
-        .withIdleTimeout(10 seconds)
-        .withConnectingTimeout(10 seconds)
+//        .withIdleTimeout(60.seconds)
+//        .withConnectingTimeout(60 seconds)
         )
     val request = HttpRequest(uri = url).addHeader(RawHeader("accept", "application/json"))
     Http()
       .singleRequest(request, settings = settings)
+      .flatMap{
+        case HttpResponse(StatusCodes.OK, h, e, p) =>
+          e.toStrict(120 seconds).map(r => JsonOk(r.data.utf8String))
+        case HttpResponse(statusCode, _, e, _) =>
+          e.toStrict(120 seconds).map(r => BadResponse(statusCode, r.data.utf8String))
+      }
+      .recoverWith {
+        case exception => Future.successful(Error(exception))
+      }
+  }
+
+  def getJsonDirect(url: String)
+             (implicit executionContext: ExecutionContext,
+              system: ActorSystem,
+              materializer: Materializer): Future[JsonResult] = {
+//    val httpsProxyTransport = ClientTransport.httpsProxy(InetSocketAddress.createUnresolved(proxy, proxyPort))
+//    val settings = ConnectionPoolSettings(system)
+//      .withConnectionSettings(ClientConnectionSettings(system)
+//        .withTransport(httpsProxyTransport)
+//        .withIdleTimeout(10.seconds)
+//        .withConnectingTimeout(10 seconds)
+//      )
+    val request = HttpRequest(uri = url).addHeader(RawHeader("accept", "application/json"))
+    Http()
+//      .singleRequest(request, settings = settings)
+      .singleRequest(request)
       .flatMap{
         case HttpResponse(StatusCodes.OK, h, e, p) =>
           e.toStrict(10 seconds).map(r => JsonOk(r.data.utf8String))

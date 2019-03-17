@@ -28,3 +28,5 @@ case class Wine(
                  image: Image, statistics: Statistics, hidden: Boolean, vintages: Seq[Vintage])
 
 case class Wines(wines: Seq[Wine])
+
+case class WineVintages(wineId: Int, vintagesIds: List[Int])

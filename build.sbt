@@ -1,6 +1,6 @@
 name := "swines"
 
-version := "1.01"
+version := "1.03"
 
 scalaVersion := "2.12.6"
 
@@ -39,6 +39,8 @@ libraryDependencies += "com.typesafe.scala-logging" %% "scala-logging" % "3.9.2"
 
 // https://mvnrepository.com/artifact/com.typesafe/config
 
+// https://mvnrepository.com/artifact/org.apache.commons/commons-csv
+libraryDependencies += "org.apache.commons" % "commons-csv" % "1.4"
 
 mainClass := Some("swines.ReadReviews")
 enablePlugins(JavaAppPackaging)

@@ -1,5 +1,54 @@
 SuperfectaS10mn$
+
+======
+scp  tsv  cloudera-user@192.168.1.121:/home/cloudera-user/data/
+ssh cloudera-user@192.168.1.121
+
+==
+# copy the file to hdfs environment
+# 1) by creating the hdfs folder
+sudo -u hdfs hdfs dfs -mkdir combined
+# 2) and copying there the file from local file system
+sudo -u hdfs hdfs dfs -put wineCombine.tsv combined
+# 3) removing now trash extra file
+rm wineCombine.tsv
+======
+
+
+
 ===
+/localdisk/Oracle/Middleware/BDD-1.4.0.37.1419/dataprocessing/edp_cli/data_processing_CLI -t report1521479726541 - Replace last word (report1521479726541) with the name of dataset in hive
+===
+BDD 1.4 Production
+IP address : 192.168.1.112
+IMPORTANT INSTRUCTIONS MUST BE FOLLOWED!!!
+1- login to BDD server
+2- run "sudo -i" to login as root
+3- run "su bdd" to login as bdd
+if we skip #3, some componets will break
+ssh bdd@192.168.1.112
+ssh username : bdd
+Password : RDikGbg1njEtokc
+Will ask for weblogic username and PWD:
+username : weblogic
+password : admin123
+Weblogic url : http://apps.equineintel.com:7001/console accessible only from private network
+
+Studio url : https://apps.equineintel.com:7004/bdd/web/home/index accessible from everywhere
+
+To update the datasets Run:
+1- run these commands on dg server
+cd /opt/projects/futulefo/parse_jcp/
+./run.sh
+
+2- run these commands on hdp server
+a) cd /opt/
+b) ./update_manually.sh
+
+===
+
+scp wine-reviews-.tsv  cloudera-user@192.168.1.121:"~/data"
+ssh cloudera-user@192.168.1.121
 Loaded 355585 wines to scrap reviews = 1031724-673616 2:50 pm 8/03
 Loaded 345973 wines to scrap reviews = 1031724-682702
 ===
