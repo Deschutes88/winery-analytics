@@ -113,7 +113,7 @@ object CreateTSV {
 
 
   def flush2file(data: String, filename: String) {
-    val bw = new PrintWriter(new BufferedWriter(new FileWriter(filename)))
+    val bw = new PrintWriter(new BufferedWriter(new FileWriter(filename, false)))
     bw.write(data)
     bw.close()
   }

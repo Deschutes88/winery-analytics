@@ -24,7 +24,8 @@ object SavedPrices {
             println(s"Error while reading id from file $filename")
             None
         }
-      }.filter(_.nonEmpty).map(_.get)
+      }
+      .collect{case Some(id) => id }
   }
 
 
