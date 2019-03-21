@@ -1,5 +1,5 @@
 -- / user/ admin/ swines
-CREATE TABLE wine_revs(
+CREATE TABLE wine_reviews(
         id                  	int,
         rating              	float,
         note                	string,
@@ -32,8 +32,8 @@ CREATE TABLE wine_revs(
 ROW FORMAT SERDE 'org.apache.hadoop.hive.serde2.OpenCSVSerde'
 WITH SERDEPROPERTIES (
    "separatorChar" = "\t",
-   "escapeChar"    = "\\",
-   "skip.header.line.count"="1"
+   "escapeChar"    = "\\"
+   --,"skip.header.line.count"="1"
 )
 STORED AS TEXTFILE
-LOCATION  'hdfs://cdh.equineintel.com:8020/user/hdfs/wine-revs';
+LOCATION  'hdfs://cdh.equineintel.com:8020/user/hdfs/wine-reviews';

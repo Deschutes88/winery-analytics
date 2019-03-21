@@ -19,7 +19,7 @@ object CreateTSV {
   val CELL_SEP = "\t"
   val ROW_SEP = "\n"
   val ESC_CHAR = "\""
-  val export_file_name = "wines-vintages-.tsv"
+  val export_file_name = cfg.wines.exportTsv.saveTo
 
   var wines_count = 0
   var wines_vintages_count = 0
@@ -41,11 +41,11 @@ object CreateTSV {
       }
     }
 
-    println(s"wines = $wines_count, wines vintages = $wines_vintages_count")
+    println(s"$export_file_name: wines = $wines_count, wines vintages = $wines_vintages_count")
   }
 
   def prepareExportFile() {
-    val headers = "id\tname\ttype_id\trgn.id\trgn.name\trgn.seo_name\trgn.ctry.code\trgn.ctry.name\trgn.ctry.rgns_count\trgn.ctry.users_count\trgn.ctry.wines_count\trgn.ctry.wineries_count\twinery.id\twinery.name\twinery.seo_name\twinery.stats.ratings_count\twinery.stats.ratings_average\twinery.stats.wines_count\tstats.ratings_count\tstats.ratings_average\tstats.labels_count\thidden\tvintages.id\tvintages.seo_name\tvintages.year\tvintages.name\tvintages.stats.ratings_count\tvintages.stats.ratings_average\tvintages.stats.labels_count\n"
+    val headers = "" //"id\tname\ttype_id\trgn.id\trgn.name\trgn.seo_name\trgn.ctry.code\trgn.ctry.name\trgn.ctry.rgns_count\trgn.ctry.users_count\trgn.ctry.wines_count\trgn.ctry.wineries_count\twinery.id\twinery.name\twinery.seo_name\twinery.stats.ratings_count\twinery.stats.ratings_average\twinery.stats.wines_count\tstats.ratings_count\tstats.ratings_average\tstats.labels_count\thidden\tvintages.id\tvintages.seo_name\tvintages.year\tvintages.name\tvintages.stats.ratings_count\tvintages.stats.ratings_average\tvintages.stats.labels_count\n"
     flush2file(headers, export_file_name);
   }
 
@@ -53,8 +53,9 @@ object CreateTSV {
 
     val fn = s"$WAREHOUSE/$file"
 
-    val wines = {
-      JsonUtil.fromJson[Wines](asScalaIterator(Files.readAllLines(Paths.get(fn)).iterator()).mkString("\n"))
+    val wines: Wines = {
+      val txt = asScalaIterator(Files.readAllLines(Paths.get(fn)).iterator()).mkString("\n")
+      JsonUtil.fromJson[Wines](txt)
     }
 
     var data = new StringBuilder

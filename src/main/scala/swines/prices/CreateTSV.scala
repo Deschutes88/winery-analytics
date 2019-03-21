@@ -80,8 +80,9 @@ object CreateTSV {
 
     val headerRow = "id\tcurrency\tcurrency_name\tmedian.amount\tmedian.type\tprice.amount\tprice.discounted_from\tprice.type\n"
 
-    Source.single(headerRow)
-      .concat(rows)
+//    Source.single(headerRow)
+//      .concat(rows)
+      rows
       .map(ByteString.apply)
       .runWith(FileIO.toPath(Paths.get(cfg.prices.exportTsv.saveTo)))
       .onComplete {
@@ -89,7 +90,7 @@ object CreateTSV {
           log.info(s"File `${cfg.prices.exportTsv.saveTo}` is created with ${rowCounter.get()} rows. ${zeroRowsCounter.get()} wines had no prices.")
           system.terminate()
         case Failure(exception) =>
-          log.error(s"Error creating TSV file for prices: ${exception.getMessage}")
+          log.error(s"Error creating TSV file for prices `${cfg.prices.exportTsv.saveTo}`: ${exception.getMessage}")
           system.terminate()
       }
 

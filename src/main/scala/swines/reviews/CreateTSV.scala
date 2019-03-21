@@ -68,8 +68,9 @@ object CreateTSV {
 
     val headerRow = "id\trating\tnote\tlanguage\tcreated_at\tuser_id\tuser_seo_name\tuser_alias\tuser_visblty\tuser_followers_count\tuser_following_count\tuser_ratings_count\tvintage_id\tvintage_seo_name\tvintage_year\tvintage_name\tvintge_stats_ratings_count\tvintge_stats_ratings_average\tvintge_stats_labels_count\tvintge_wine_id\tvintge_wine_name\tvintge_wine_region_id\tvintge_wine_rgn_name\tvintge_wine_rgn_cntry_code\tvintge_wine_rgn_cntry_name\tactivity_id\tactivity_stats_likes_count\tactivity_stats_comments_count\n"
 
-    Source.single(headerRow)
-      .concat(rows)
+//    Source.single(headerRow)
+//      .concat(rows)
+      rows
       .map(ByteString.apply)
       .runWith(FileIO.toPath(Paths.get(cfg.reviews.exportTsv.saveTo)))
       .onComplete {
@@ -77,7 +78,7 @@ object CreateTSV {
           log.info(s"File `${cfg.reviews.exportTsv.saveTo}` is created with ${rowCounter.get()} rows")
           system.terminate()
         case Failure(exception) =>
-          log.error(s"Error creating TSV file for reviews: ${exception.getMessage}")
+          log.error(s"Error creating TSV file for reviews `${cfg.reviews.exportTsv.saveTo}`: ${exception.getMessage}")
           system.terminate()
       }
 
