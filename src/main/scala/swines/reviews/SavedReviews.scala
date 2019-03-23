@@ -50,7 +50,7 @@ object SavedReviews {
 
   }
 
-  val log = Logger("MyGlobalLog")
+  val log = Logger("ReviewsScraper")
 
   def unloadedReviews(implicit executionContext: ExecutionContext,
                       actorSystem: ActorSystem,
