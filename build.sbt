@@ -42,5 +42,5 @@ libraryDependencies += "com.typesafe.scala-logging" %% "scala-logging" % "3.9.2"
 // https://mvnrepository.com/artifact/org.apache.commons/commons-csv
 libraryDependencies += "org.apache.commons" % "commons-csv" % "1.4"
 
-mainClass := Some("swines.ReadReviews")
+//mainClass := Some("swines.ReadReviews")
 enablePlugins(JavaAppPackaging)

@@ -14,7 +14,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 object SavedWines {
   private val log = Logger("WinesScraper")
-  private val isWineFile = "^.*[\\\\\\/]?wines-(\\d+)-(\\d+)-(\\d+)-?.json$".r
+   val isWineFile = "^.*[\\\\\\/]?wines-(\\d+)-(\\d+)-(\\d+)-?.json$".r
   private val notFoundLogStr = "^.*Bad response\\(404 Not Found\\) wineryId\\=\\[(\\d+)\\].*$".r
 
 

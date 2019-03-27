@@ -44,6 +44,21 @@
     <!--***********************************************************************-->
 
     <!--***********************************************************************-->
+    <appender name="wines.CreateTSV" class="ch.qos.logback.core.FileAppender">
+        <file>wines-create-tsv-.log</file>
+        <append>false</append>
+        <encoder>
+
+            <pattern>%level{-5}\t%msg%n</pattern>
+            <!--<pattern>%date %level [%thread] %logger{10} [%file:%line] %msg%n</pattern>-->
+        </encoder>
+    </appender>
+    <logger name="wines.CreateTSV" level="info" additivity="false">
+        <appender-ref ref="wines.CreateTSV"/>
+        <appender-ref ref="STDOUT"/>
+    </logger>
+    <!--***********************************************************************-->
+    <!--***********************************************************************-->
     <appender name="reviews.CreateTSV" class="ch.qos.logback.core.FileAppender">
         <file>reviews-create-tsv-.log</file>
         <append>false</append>

@@ -67,8 +67,9 @@ object SavedReviews {
       }
 
     val successfullyLoadedWineIdsF: Future[Set[Int]] =
-      GlobalLog.succesfullWineIdsFromGlobalLog(cfg.files.globalLog)
-        .concat(GlobalLog.succesfullWineIdsFromGlobalLog(cfg.files.myGlobalLog))
+//      GlobalLog.succesfullWineIdsFromGlobalLog(cfg.files.globalLog)
+//        .concat(GlobalLog.succesfullWineIdsFromGlobalLog(cfg.files.myGlobalLog))
+      GlobalLog.succesfullWineIdsFromGlobalLog(cfg.files.myGlobalLog)
         .runWith(Sink.seq)
         .map(_.toSet)
         .recoverWith { case e =>

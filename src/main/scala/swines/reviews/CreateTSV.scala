@@ -85,7 +85,7 @@ object CreateTSV {
   }
 
   implicit class ToStr[T](v: T) {
-    def toStr: String = if (v == null) "" else v.toString
+    def toStr: String = if (v == null) "null" else v.toString
   }
 
   def reviewsToTsv(reviews: Reviews): String = {
@@ -95,47 +95,52 @@ object CreateTSV {
         .withDelimiter("\t".charAt(0))
         .withEscape("\\".charAt(0))
     )
-    reviews.reviews.map { review: Review =>
-      val activity = if (review.activity != null) review.activity else
-        Activity(-1, ActivityStats(-1, -1))
-      val region = if (review.vintage.wine.region != null) review.vintage.wine.region else
-        Region(-1, "", "", Country("", "", "", null, -1, -1, -1, -1, null), null)
-      csvPrinter.printRecord(
-        review.id.toStr,
-        review.rating.toStr,
-        clean(review.note.toStr),
-        review.language.toStr,
-        review.created_at.toStr,
-        review.user.id.toStr,
-        review.user.seo_name.toStr,
-        review.user.alias.toStr,
-        review.user.visibility.toStr,
-        review.user.followers_count.toStr,
-        review.user.following_count.toStr,
-        review.user.ratings_count.toStr,
-        review.vintage.id.toStr,
-        review.vintage.seo_name.toStr,
-        review.vintage.year.toStr,
-        review.vintage.name.toStr,
-        review.vintage.statistics.ratings_count.toStr,
-        review.vintage.statistics.ratings_average.toStr,
-        review.vintage.statistics.labels_count.toStr,
-        review.vintage.wine.id.toStr,
-        review.vintage.wine.name.toStr,
-        region.id.toStr,
-        region.name.toStr,
-        region.country.code.toStr,
-        region.country.name.toStr,
-        activity.id.toStr,
-        activity.statistics.likes_count.toStr,
-        activity.statistics.comments_count.toStr
-      )
-      rowCounter.incrementAndGet()
+    try {
+      reviews.reviews.map { review: Review =>
+        val activity = if (review.activity != null) review.activity else
+          Activity(-1, ActivityStats(-1, -1))
+        val region = if (review.vintage.wine.region != null) review.vintage.wine.region else
+          Region(-1, "", "", Country("", "", "", null, -1, -1, -1, -1, null), null)
+        csvPrinter.printRecord(
+          review.id.toStr,
+          review.rating.toStr,
+          clean(review.note.toStr),
+          review.language.toStr,
+          review.created_at.toStr,
+          review.user.id.toStr,
+          review.user.seo_name.toStr,
+          review.user.alias.toStr,
+          review.user.visibility.toStr,
+          review.user.followers_count.toStr,
+          review.user.following_count.toStr,
+          review.user.ratings_count.toStr,
+          review.vintage.id.toStr,
+          review.vintage.seo_name.toStr,
+          review.vintage.year.toStr,
+          review.vintage.name.toStr,
+          review.vintage.statistics.ratings_count.toStr,
+          review.vintage.statistics.ratings_average.toStr,
+          review.vintage.statistics.labels_count.toStr,
+          review.vintage.wine.id.toStr,
+          review.vintage.wine.name.toStr,
+          region.id.toStr,
+          region.name.toStr,
+          region.country.code.toStr,
+          region.country.name.toStr,
+          activity.id.toStr,
+          activity.statistics.likes_count.toStr,
+          activity.statistics.comments_count.toStr
+        )
+        rowCounter.incrementAndGet()
+      }
+      csvPrinter
+        .flush()
+      val tsvRow = sw.toString
+      tsvRow
+    }finally {
+      csvPrinter.close()
+      sw.close()
     }
-    csvPrinter
-      .flush()
-    val tsvRow = sw.toString
-    tsvRow
   }
 
   //  def mkReviewRow(review: Review) = {

@@ -45,6 +45,10 @@ object CreateTSV {
             .map(_.utf8String)
             .map { jsonStr: String =>
               Try {
+                val wineId = p.getFileName.toString match {
+                  case SavedPrices.regWinePricesFilename(wineId) => wineId.toString
+                  case _ => throw new Exception(s"`$p` doesn't look like price file!")
+                }
                 val prices = JsonUtil.toTree(jsonStr)
                 val currency = prices.get("prices").get("market").get("currency").get("prefix")
                 val currency_name = prices.get("prices").get("market").get("currency").get("name")

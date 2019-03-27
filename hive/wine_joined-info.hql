@@ -19,5 +19,10 @@ select "all", count(*) from wine_joined;
 -- 3	note	            103 093 154
 -- 4	all	                112 327 466
 --
+
+-- note and price__amount	79  132 354
+-- price__amount	        84 262 994
+-- note	                    103 061 586
+-- all	                    112 308 686
 SELECT count(DISTINCT vintages__id) from wine_joined;
 -- 5 865 245
