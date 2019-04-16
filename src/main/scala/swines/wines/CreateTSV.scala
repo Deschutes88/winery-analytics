@@ -104,12 +104,14 @@ object CreateTSV {
     }
 
     try {
-      for {wine <- wines.wines if wine != null && wineryIdFromFilename==wine.winery.id
+      for {wine <- wines.wines if wine != null
+            _ = if(wineryIdFromFilename==wine.winery.id)
+                  log.warn(s"(!) File $p is skipped: Different wineryIds $wineryIdFromFilename!=$wine.winery.id")
            //           region = if (wine.region != null) wine.region
            //           else Region(-1, "", "", Country("", "", "", null, -1, -1, -1, -1, null), null)
            //           _ = if (wine.vintages.length != wine.vintages.map(_.id).toSet.size)
            //             log.error(s"Doubled vintages ids for wineId=${wine.id}")
-           vintage <- wine.vintages if wine.vintages != null && vintage != null
+           vintage <- wine.vintages if wineryIdFromFilename==wine.winery.id && wine.vintages != null && vintage != null
       } {
         //        if(vintagesSet.contains((vintage.wine.winery.id, wine.id, vintage.id)))
         //          log.error(s"Error double entries in `$p` ${(vintage.wine.winery.id, wine.id, vintage.id)} already contained")

@@ -53,7 +53,7 @@ object CreateTSV {
                 val currency = prices.get("prices").get("market").get("currency").get("prefix")
                 val currency_name = prices.get("prices").get("market").get("currency").get("name")
                 val vintages: JsonNode = prices.get("prices").get("vintages")
-                val vintage_ids = asScalaIterator(vintages.fieldNames()).toList
+                val vintage_ids = asScalaIterator(vintages.fieldNames()).toList.distinct
                 val rows: List[String] =
                   for {vintage_id: String <- vintage_ids}
                     yield {

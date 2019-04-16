@@ -143,4 +143,19 @@
     </logger>
     <!--***********************************************************************-->
 
+    <!--***********************************************************************-->
+    <appender name="ScrapAddresses" class="ch.qos.logback.core.FileAppender">
+        <file>addresses-scraper-.log</file>
+        <append>true</append>
+        <encoder>
+            <pattern>%-5level\t%msg%n</pattern>
+            <!--<pattern>%date %level [%thread] %logger{10} [%file:%line] %msg%n</pattern>-->
+        </encoder>
+    </appender>
+    <logger name="ScrapAddresses" additivity="false">
+        <appender-ref ref="ScrapAddresses" />
+        <appender-ref ref="STDOUT" />
+    </logger>
+    <!--***********************************************************************-->
+
 </configuration>

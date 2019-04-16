@@ -73,6 +73,8 @@ object ScrapWines {
                 }
               case Error(e) =>
                 Future(log.error(s"Exception wineryId=[$wineryId] proxy=$proxy:$port=> ${e.getMessage}\n"))
+              case error =>
+                Future(log.error(s"Error $error wineryId=[$wineryId] proxy=$proxy:$port\n"))
 
             }
       }

@@ -2,6 +2,7 @@ package swines.prices
 
 import java.nio.charset.StandardCharsets
 import java.nio.file.{Files, Paths}
+import java.util.concurrent.TimeUnit
 
 import akka.NotUsed
 import akka.actor.ActorSystem
@@ -12,7 +13,8 @@ import swines.data.WineVintages
 import swines.proxies.{MyHttpClient, Proxies}
 import swines.proxies.MyHttpClient.{BadResponse, Error, OK}
 import swines.reviews.SavedWineWintages
-import swines.{cfg}
+import swines.cfg
+import concurrent.duration._
 
 import scala.concurrent.Future
 
@@ -61,6 +63,8 @@ object ScrapPrices {
     def mkSaveFilename(wineId: Int) =
       s"${cfg.prices.warehouse}/wine-${wineId}-prices-.json"
 
+//    system.scheduler.schedule(0 seconds, 5 minutes)( println(1))
+
     val prices = Source.fromFuture(wineVintagesToLoadF)
       .mapConcat(identity)
       .zip(proxyEndlessStream)
@@ -75,7 +79,7 @@ object ScrapPrices {
                 val p = Paths.get(fname)
                 if (Files.notExists(p)) {
                   Files.write(p, json.getBytes(StandardCharsets.UTF_8))
-                  log.info(s"Ok: Prices for wineId=[$wineId] (${json.length} bytes) are saved to $fname")
+                  log.debug(s"Ok: Prices for wineId=[$wineId] (${json.length} bytes) are saved to $fname")
                 } else {
                   log.error(s"Error file `$p` already exists!")
                 }
@@ -86,6 +90,8 @@ object ScrapPrices {
               }
             case Error(except) =>
               Future(log.error(s"\nException for wineId=[$wineId] => ${except.getMessage}\n"))
+            case error =>
+              Future.successful(log.error(s"Error $error"))
           }
       }
     //      .withAttributes(ActorAttributes.supervisionStrategy(stopDecider))

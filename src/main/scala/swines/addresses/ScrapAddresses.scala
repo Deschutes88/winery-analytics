@@ -38,38 +38,42 @@ object ScrapAddresses {
       Source.repeat(0)
         .flatMapConcat(_ => Proxies.allProxies(cfg.files.proxyList))
 
-    SavedWinaries.fromDir(cfg.wines.warehouse)
+    Source.fromFuture(SavedWinaries.fromDirWithoutSaved(cfg.wines.warehouse, cfg.addresses.warehouse))
+      .mapConcat(identity)
+//    SavedWinaries.fromDir(cfg.wines.warehouse)
       .zip(proxyEndlessStream)
       .mapAsyncUnordered(cfg.addresses.scraper.parallelizm) {
-        case (wfi @ WineryFileInfo(wineryId, seoName, filename), (proxy, proxyPort)) =>
+        case (wfi@WineryFileInfo(wineryId, seoName, filename), (proxy, proxyPort)) =>
           val saveHtmlTo = Paths.get(cfg.addresses.warehouse, s"winary-$wineryId-$seoName.html")
-          if(Files.exists(saveHtmlTo)){
+          if (Files.exists(saveHtmlTo)) {
             val m = s"File $saveHtmlTo already exists!"
-            log.warn(m)
-//            Future.failed(new Exception(m))
+            log.error(m)
             Future.successful(None)
-          }else{
+          } else {
             val url = s"https://www.vivino.com/wineries/${seoName}"
             MyHttpClient.get(url, "text/html", proxy, proxyPort)
-              .map{
+              .map {
                 case OK(html) =>
                   val bytes = html.getBytes(StandardCharsets.UTF_8)
                   Files.write(saveHtmlTo, bytes)
                   log.info(s"Ok: ${bytes.length} bytes is saved to $saveHtmlTo")
                   Some(wfi -> html)
                 case Error(e) =>
-                  log.error(s"Error getting data from $url : ${e.getMessage}")
+                  log.error(s"Error for $wfi url=`$url` : ${e.getMessage} !")
                   None
                 case BadResponse(statusCode, body) =>
-                  log.error(s"BadResponse($statusCode) for $url : ${body}")
+                  log.error(s"BadResponse($statusCode) for $wfi url=`$url` !")
+                  None
+                case error =>
+                  log.error(s"Error $error for $wfi url=`$url` !")
                   None
               }
           }
-      }.collect{case Some(x) => x }
+      }.collect { case Some(x) => x }
       .map {
-        case  (wfi @ WineryFileInfo(wineryId, seoName, filename), html) =>
+        case (wfi@WineryFileInfo(wineryId, seoName, filename), html) =>
       }
-//      .runWith(Sink.foreach(println))
+      //      .runWith(Sink.foreach(println))
       .runWith(Sink.ignore)
       .onComplete { r =>
         log.info(s"Finished $r")

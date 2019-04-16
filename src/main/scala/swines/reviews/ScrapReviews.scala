@@ -2,7 +2,7 @@ package swines.reviews
 
 import java.nio.charset.StandardCharsets
 import java.nio.file.{Files, Paths}
-import java.time.{Duration, Instant}
+import java.time.{Duration, Instant, LocalDateTime}
 import java.util.concurrent.atomic.AtomicBoolean
 
 import akka.NotUsed
@@ -13,7 +13,7 @@ import com.typesafe.scalalogging.Logger
 import swines.data.{JsonUtil, Reviews, WineVintages}
 import swines.proxies.{MyHttpClient, Proxies}
 import swines.proxies.MyHttpClient.{BadResponse, Error, OK}
-import swines.{cfg}
+import swines.cfg
 
 import scala.io.StdIn
 import scala.util.{Failure, Try}
@@ -24,6 +24,7 @@ object ScrapReviews {
   val proxyList = cfg.files.proxyList
   val myGlobalLog = Logger("MyGlobalLog")
   val log = Logger("ReviewsScraper")
+  log.info(s"Starting ${LocalDateTime.now()} ...")
 
   def main(args: Array[String]): Unit = {
     import concurrent.ExecutionContext.Implicits.global
@@ -67,7 +68,7 @@ object ScrapReviews {
                       .flatMap { r =>
                         val time2 = Instant.now()
                         val duration = Duration.between(time, time2).getSeconds
-                        println(s"Response time $duration secs for $logMsgId");
+                        log.debug(s"Response time $duration secs for $logMsgId");
                         if (r.reviews.nonEmpty) {
                           Some(pageNo + 1, pageNo -> json)
                         } else {
@@ -82,6 +83,10 @@ object ScrapReviews {
                     None
                   case Error(except) =>
                     val m = s"Exception for $logMsgId: ${except.getMessage}"
+                    log.error(m)
+                    None
+                  case error =>
+                    val m = s"Error $error for $logMsgId !"
                     log.error(m)
                     None
                 }
