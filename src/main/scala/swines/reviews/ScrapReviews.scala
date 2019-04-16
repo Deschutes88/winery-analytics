@@ -11,8 +11,8 @@ import akka.stream.scaladsl.{Sink, Source}
 import akka.stream.{ActorMaterializer, KillSwitches, Supervision}
 import com.typesafe.scalalogging.Logger
 import swines.data.{JsonUtil, Reviews, WineVintages}
-import swines.proxies.{ClientJson, Proxies}
-import swines.proxies.ClientJson.{BadResponse, Error, JsonOk}
+import swines.proxies.{MyHttpClient, Proxies}
+import swines.proxies.MyHttpClient.{BadResponse, Error, OK}
 import swines.{cfg}
 
 import scala.io.StdIn
@@ -55,9 +55,9 @@ object ScrapReviews {
               val reviewsUrl = REVIEWS_URL.format(wineId, wineId, pageNo)
               val logMsgId = s"wineId=[$wineId] page=$pageNo proxy=$proxy:$port"
               val time = Instant.now()
-              ClientJson.getJson(reviewsUrl, proxy, port)
+              MyHttpClient.getJson(reviewsUrl, proxy, port)
                 .map {
-                  case JsonOk(json) =>
+                  case OK(json) =>
                     Try(JsonUtil.fromJson[Reviews](json))
                       .recoverWith { case exception =>
                         log.error(s"Error parsing json $logMsgId: ${exception.getMessage}")

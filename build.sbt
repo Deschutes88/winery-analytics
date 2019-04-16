@@ -1,6 +1,6 @@
 name := "swines"
 
-version := "1.03"
+version := "1.06"
 
 scalaVersion := "2.12.6"
 
@@ -42,5 +42,10 @@ libraryDependencies += "com.typesafe.scala-logging" %% "scala-logging" % "3.9.2"
 // https://mvnrepository.com/artifact/org.apache.commons/commons-csv
 libraryDependencies += "org.apache.commons" % "commons-csv" % "1.4"
 
+// https://mvnrepository.com/artifact/org.jsoup/jsoup
+libraryDependencies += "org.jsoup" % "jsoup" % "1.11.3"
+
 //mainClass := Some("swines.ReadReviews")
 enablePlugins(JavaAppPackaging)
+
+assemblyJarName in assembly := "swines.jar"

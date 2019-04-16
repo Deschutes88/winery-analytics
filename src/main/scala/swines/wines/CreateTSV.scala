@@ -1,189 +1,171 @@
 package swines.wines
 
-/**
-  * OLD WinesCounter, written by prev developer
-  */
+import java.io.StringWriter
+import java.nio.file.{Files, Path, Paths}
 
-import java.io._
-import java.nio.file.{Files, Paths}
-
-import org.apache.commons.csv.{CSVFormat, CSVPrinter}
+import akka.actor.ActorSystem
+import akka.stream.alpakka.file.scaladsl.Directory
+import akka.stream.scaladsl.{FileIO, Source}
+import akka.stream.{ActorAttributes, ActorMaterializer, Supervision}
+import akka.util.ByteString
 import swines.cfg
 import swines.data._
+import org.apache.commons.csv.CSVFormat
+import org.apache.commons.csv.CSVPrinter
+import java.util.concurrent.atomic.AtomicLong
 
-import scala.collection.JavaConverters._
+import akka.NotUsed
+import com.typesafe.scalalogging.Logger
+
+import scala.concurrent.Future
+import scala.util.{Failure, Success, Try}
+import collection.JavaConverters._
 
 object CreateTSV {
 
-  //    val WAREHOUSE = "/home/cloudera-user/Wine Project/Wine Smoker/resources/storage"
-//  val CELL_SEP = "\t"
-//  val ROW_SEP = "\n"
-//  val ESC_CHAR = "\""
-  val WAREHOUSE = cfg.wines.warehouse
-  val export_file_name = cfg.wines.exportTsv.saveTo
+  private val log = Logger("wines.CreateTSV")
+  private val rowCounter = new AtomicLong(0L)
 
-  var wines_count = 0
-  var wines_vintages_count = 0
 
   def main(args: Array[String]) {
 
-    prepareExportFile
+    import concurrent.ExecutionContext.Implicits.global
+    implicit val system = ActorSystem("SwinesActorSystem")
+    implicit val materializer = ActorMaterializer()
+    log.info(s"CreateTSV for wines. Reading files from `${cfg.wines.warehouse}` ...")
 
-    val files = new File(s"$WAREHOUSE").list
-    val pretty = ".*(pretty).*".r
-    val not_pretty = ".*(wines).*".r
+    val rows: Source[String, _] =
+      Directory.ls(Paths.get(cfg.wines.warehouse))
+        .recoverWithRetries(1,
+          { case e =>
+            log.error(s"Error reading files in `${cfg.wines.warehouse}`: ${e.getMessage}")
+            Source.failed(e)
+          })
+        .filter(Files.isRegularFile(_))
+        .filter {
+          _.toString matches (SavedWines.isWineFile.regex)
+        }
+        .mapAsyncUnordered(cfg.wines.exportTsv.parallelizm) { p =>
+          log.info(s"Reading `$p` ...")
+          FileIO.fromPath(p).runFold(ByteString.empty)(_ ++ _)
+            .recoverWith { case e =>
+              log.error(s"Error reading `$p`: ${e.getMessage}!")
+              Future.failed(e)
+            }
+            .map(_.utf8String)
+            .map { jsonStr: String =>
+              Try {
+                JsonUtil.fromJson[Wines](jsonStr)
+              }.recoverWith { case e =>
+                log.error(s"Error converting JSON to TSV in `$p`: ${e.getMessage}")
+                Failure(e)
+              }.flatMap { wines =>
+                Try(winesToTsv(wines, p))
+                  .recoverWith { case e =>
+                    log.error(s"Error while making TSV from `$p`:  ${e.getMessage}")
+                    Failure(e)
+                  }
+              }.getOrElse("")
+            }
+        }
 
-
-    for (file <- files) {
-      file match {
-        case pretty(c)     => println(s"'$file' IS PRETTY -> not handled")
-        case not_pretty(a) => handle(file)
-        case _             => println("TOTALLY OTHER FILE")
+    //    val headerRow = "wine_id\trating\tnote\tlanguage\tcreated_at\tuser_id\tuser_seo_name\tuser_alias\tuser_visblty\tuser_followers_count\tuser_following_count\tuser_ratings_count\tvintage_id\tvintage_seo_name\tvintage_year\tvintage_name\tvintge_stats_ratings_count\tvintge_stats_ratings_average\tvintge_stats_labels_count\tvintge_wine_id\tvintge_wine_name\tvintge_wine_region_id\tvintge_wine_rgn_name\tvintge_wine_rgn_cntry_code\tvintge_wine_rgn_cntry_name\tactivity_id\tactivity_stats_likes_count\tactivity_stats_comments_count\n"
+    val headerRow = "wine_id\twine_name\twine_type_id\trgn__id\trgn__name\trgn__seo_name\trgn__cntry__code\trgn__cntry__name\trgn__cntry__regions_count\trgn__cntry__users_count\trgn__cntry__wines_count\trgn__cntry__wineries_count\twinery__id\twinery__name\twinery__seo_name\twinery__stats__ratings_count\twinery__stats__ratings_average\twinery__stats__wines_count\tstats__ratings_count\tstats__ratings_average\tstats__labels_count\thidden\tvintages__id\tvintages__seo_name\tvintages__year\tvintages__name\tvintages__stats__ratings_count\tvintages__stats__ratings_average\tvintages__stats__labels_count\twine_file\n"
+    Source.single(headerRow)
+      .concat(rows)
+      //    rows
+      .map(ByteString.apply)
+      .runWith(FileIO.toPath(Paths.get(cfg.wines.exportTsv.saveTo)))
+      .onComplete {
+        case Success(value) =>
+          log.info(s"File `${cfg.wines.exportTsv.saveTo}` is created with ${rowCounter.get()} rows")
+          system.terminate()
+        case Failure(exception) =>
+          log.error(s"Error creating TSV file for wines/vintages `${cfg.wines.exportTsv.saveTo}`: ${exception.getMessage}")
+          system.terminate()
       }
-    }
 
-    println(s"$export_file_name: wines = $wines_count, wines vintages = $wines_vintages_count")
-  }
-
-  def prepareExportFile() {
-    val headers = "" //"id\tname\ttype_id\trgn.id\trgn.name\trgn.seo_name\trgn.ctry.code\trgn.ctry.name\trgn.ctry.rgns_count\trgn.ctry.users_count\trgn.ctry.wines_count\trgn.ctry.wineries_count\twinery.id\twinery.name\twinery.seo_name\twinery.stats.ratings_count\twinery.stats.ratings_average\twinery.stats.wines_count\tstats.ratings_count\tstats.ratings_average\tstats.labels_count\thidden\tvintages.id\tvintages.seo_name\tvintages.year\tvintages.name\tvintages.stats.ratings_count\tvintages.stats.ratings_average\tvintages.stats.labels_count\n"
-    flush2file(headers, export_file_name);
-  }
-
-  def handle(file: String) {
-
-    val fn = s"$WAREHOUSE/$file"
-
-    val wines: Wines = {
-      val txt = asScalaIterator(Files.readAllLines(Paths.get(fn)).iterator()).mkString("\n")
-      JsonUtil.fromJson[Wines](txt)
-    }
-
-    var data = new StringBuilder
-
-    for (wine: Wine <- wines.wines) {
-      for (vintage: Vintage <- wine.vintages) {
-//        data.append( mkWineRow(wine, vintage) ).append( ROW_SEP )
-        data.append( mkWineRow2(wine, vintage) )
-      }
-      wines_vintages_count += wine.vintages.size
-    }
-    wines_count += wines.wines.size
-
-    append2file(data.toString, export_file_name)
-
-    println(s"'$file' contains ${wines.wines.size} wines description")
   }
 
   implicit class ToStr[T](v: T) {
     def toStr: String = if (v == null) "null" else v.toString
-    def as[F]: F =
-      if (v == null)
-        throw new Exception(s"$v can't be casted to ...")
-      else v.asInstanceOf[F]
   }
 
+  val vintagesSet = collection.mutable.Set.empty[(Int, Int, Int)]
 
-  def mkWineRow2(wine: Wine, vintage: Vintage) = {
-    val sw = new StringWriter
-    val csvPrinter = new CSVPrinter(
-      sw, CSVFormat.DEFAULT
-        .withDelimiter("\t".charAt(0))
+  def winesToTsv(wines: Wines, p: Path): String = {
+    val sw = new StringWriter()
+    val csvPrinter = new CSVPrinter(sw,
+      CSVFormat.DEFAULT.withDelimiter("\t".charAt(0))
         .withEscape("\\".charAt(0))
     )
+    val wineryIdFromFilename = p.getFileName.toString match {
+      case SavedWines.isWineFile(id, _, _) => id.toInt
+    }
+
     try {
-      val region = if (wine.region != null) wine.region else
-        Region(-1, "", "", Country("", "", "", null, -1, -1, -1, -1, null), null)
-      csvPrinter.printRecord(
-        wine.id.toStr,
-        wine.name.toStr,
-        wine.type_id.toStr,
-        region.id.toStr,
-        region.name.toStr,
-        region.seo_name.toStr,
-        region.country.code.toStr,
-        region.country.name.toStr,
-        region.country.regions_count.toStr,
-        region.country.users_count.toStr,
-        region.country.wines_count.toStr,
-        region.country.wineries_count.toStr,
-        wine.winery.id.toStr,
-        wine.winery.name.toStr,
-        wine.winery.seo_name.toStr,
-        wine.winery.statistics.ratings_count.toStr,
-        wine.winery.statistics.ratings_average.toStr,
-        wine.winery.statistics.wines_count.toStr,
-        wine.statistics.ratings_count.toStr,
-        wine.statistics.ratings_average.toStr,
-        wine.statistics.labels_count.toStr,
-        wine.hidden.toStr,
-        vintage.id.toStr,
-        vintage.seo_name.toStr,
-        vintage.year.toStr,
-        vintage.name.toStr,
-        vintage.statistics.ratings_count.toStr,
-        vintage.statistics.ratings_average.toStr,
-        vintage.statistics.labels_count.toStr
-      )
-      csvPrinter.flush
-      sw.toString
+      for {wine <- wines.wines if wine != null && wineryIdFromFilename==wine.winery.id
+           //           region = if (wine.region != null) wine.region
+           //           else Region(-1, "", "", Country("", "", "", null, -1, -1, -1, -1, null), null)
+           //           _ = if (wine.vintages.length != wine.vintages.map(_.id).toSet.size)
+           //             log.error(s"Doubled vintages ids for wineId=${wine.id}")
+           vintage <- wine.vintages if wine.vintages != null && vintage != null
+      } {
+        //        if(vintagesSet.contains((vintage.wine.winery.id, wine.id, vintage.id)))
+        //          log.error(s"Error double entries in `$p` ${(vintage.wine.winery.id, wine.id, vintage.id)} already contained")
+        //        vintagesSet.add((vintage.wine.winery.id, wine.id, vintage.id))
+
+        csvPrinter.printRecord(
+          safeStr(wine.id),
+          safeStr(wine.name),
+          safeStr(wine.type_id),
+          safeStr(wine.region.id),
+          safeStr(wine.region.name),
+          safeStr(wine.region.seo_name),
+          safeStr(wine.region.country.code),
+          safeStr(wine.region.country.name),
+          safeStr(wine.region.country.regions_count),
+          safeStr(wine.region.country.users_count),
+          safeStr(wine.region.country.wines_count),
+          safeStr(wine.region.country.wineries_count),
+          safeStr(wine.winery.id),
+          safeStr(wine.winery.name),
+          safeStr(wine.winery.seo_name),
+          safeStr(wine.winery.statistics.ratings_count),
+          safeStr(wine.winery.statistics.ratings_average),
+          safeStr(wine.winery.statistics.wines_count),
+          safeStr(wine.statistics.ratings_count),
+          safeStr(wine.statistics.ratings_average),
+          safeStr(wine.statistics.labels_count),
+          safeStr(wine.hidden),
+          safeStr(vintage.id),
+          safeStr(vintage.seo_name),
+          safeStr(vintage.year),
+          safeStr(vintage.name),
+          safeStr(vintage.statistics.ratings_count),
+          safeStr(vintage.statistics.ratings_average),
+          safeStr(vintage.statistics.labels_count),
+          p.getFileName.toString
+        )
+        rowCounter.incrementAndGet()
+      }
+      csvPrinter.flush()
+      val tsvRows = sw.toString
+      tsvRows
     } finally {
       csvPrinter.close()
       sw.close()
     }
-
   }
 
-//  def mkWineRow(wine: Wine, vintage: Vintage) = {
-//
-//    val region = if (wine.region != null) wine.region else
-//      Region(-1, "", "", Country("", "", "", null,-1, -1, -1, -1, null), null)
-//
-//
-//    var row = new StringBuilder("\"");
-//    row = row.append(wine.id);/*.append(ESC_CHAR)*/row.append(ESC_CHAR).append(CELL_SEP)
-//      .append(ESC_CHAR).append(wine.name).append(ESC_CHAR).append(CELL_SEP)
-//      .append(ESC_CHAR).append(wine.type_id).append(ESC_CHAR).append(CELL_SEP)
-//      .append(ESC_CHAR).append(region.id).append(ESC_CHAR).append(CELL_SEP)
-//      .append(ESC_CHAR).append(region.name).append(ESC_CHAR).append(CELL_SEP)
-//      .append(ESC_CHAR).append(region.seo_name).append(ESC_CHAR).append(CELL_SEP)
-//      .append(ESC_CHAR).append(region.country.code).append(ESC_CHAR).append(CELL_SEP)
-//      .append(ESC_CHAR).append(region.country.name).append(ESC_CHAR).append(CELL_SEP)
-//      .append(ESC_CHAR).append(region.country.regions_count).append(ESC_CHAR).append(CELL_SEP)
-//      .append(ESC_CHAR).append(region.country.users_count).append(ESC_CHAR).append(CELL_SEP)
-//      .append(ESC_CHAR).append(region.country.wines_count).append(ESC_CHAR).append(CELL_SEP)
-//      .append(ESC_CHAR).append(region.country.wineries_count).append(ESC_CHAR).append(CELL_SEP)
-//      .append(ESC_CHAR).append(wine.winery.id).append(ESC_CHAR).append(CELL_SEP)
-//      .append(ESC_CHAR).append(wine.winery.name).append(ESC_CHAR).append(CELL_SEP)
-//      .append(ESC_CHAR).append(wine.winery.seo_name).append(ESC_CHAR).append(CELL_SEP)
-//      .append(ESC_CHAR).append(wine.winery.statistics.ratings_count).append(ESC_CHAR).append(CELL_SEP)
-//      .append(ESC_CHAR).append(wine.winery.statistics.ratings_average).append(ESC_CHAR).append(CELL_SEP)
-//      .append(ESC_CHAR).append(wine.winery.statistics.wines_count).append(ESC_CHAR).append(CELL_SEP)
-//      .append(ESC_CHAR).append(wine.statistics.ratings_count).append(ESC_CHAR).append(CELL_SEP)
-//      .append(ESC_CHAR).append(wine.statistics.ratings_average).append(ESC_CHAR).append(CELL_SEP)
-//      .append(ESC_CHAR).append(wine.statistics.labels_count).append(ESC_CHAR).append(CELL_SEP)
-//      .append(ESC_CHAR).append(wine.hidden).append(ESC_CHAR).append(CELL_SEP)
-//      .append(ESC_CHAR).append(vintage.id).append(ESC_CHAR).append(CELL_SEP)
-//      .append(ESC_CHAR).append(vintage.seo_name).append(ESC_CHAR).append(CELL_SEP)
-//      .append(ESC_CHAR).append(vintage.year).append(ESC_CHAR).append(CELL_SEP)
-//      .append(ESC_CHAR).append(vintage.name).append(ESC_CHAR).append(CELL_SEP)
-//      .append(ESC_CHAR).append(vintage.statistics.ratings_count).append(ESC_CHAR).append(CELL_SEP)
-//      .append(ESC_CHAR).append(vintage.statistics.ratings_average).append(ESC_CHAR).append(CELL_SEP)
-//      .append(ESC_CHAR).append(vintage.statistics.labels_count).append(ESC_CHAR).append(CELL_SEP)
-//
-//    row.toString
-//  }
-
-
-  def flush2file(data: String, filename: String) {
-    val bw = new PrintWriter(new BufferedWriter(new FileWriter(filename, false)))
-    bw.write(data)
-    bw.close()
+  def safeStr[T](a: => T): String = {
+    val nullVal = ""
+    Try(a).recover { case e =>
+      //      println(s"Error reading value: ${e.getMessage}")
+      nullVal
+    }.map { a =>
+      if (a != null) a.toString.replace("\t", " ") else nullVal
+    }.getOrElse(nullVal)
   }
 
-  def append2file(msg: String, filename: String) {
-    val bw = new PrintWriter(new BufferedWriter(new FileWriter(filename, true)))
-    bw.write(s"$msg")
-    bw.close()
-  }
 }

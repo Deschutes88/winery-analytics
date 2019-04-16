@@ -1,0 +1,1 @@
+vintage_id\tcurrency\tcurrency_name\tmedian__amount\tmedian__type\tprice__amount\tprice__discounted_from\tprice__type\n

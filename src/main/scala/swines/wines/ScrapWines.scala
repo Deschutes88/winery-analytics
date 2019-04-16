@@ -11,8 +11,8 @@ import akka.stream.scaladsl.{Sink, Source}
 import com.typesafe.scalalogging.Logger
 import swines.cfg
 import swines.data.{JsonUtil, Wines}
-import swines.proxies.ClientJson.{BadResponse, Error, JsonOk}
-import swines.proxies.{ClientJson, Proxies}
+import swines.proxies.MyHttpClient.{BadResponse, Error, OK}
+import swines.proxies.{MyHttpClient, Proxies}
 
 import scala.concurrent.Future
 
@@ -52,9 +52,9 @@ object ScrapWines {
         case (wineryId, (proxy, port)) =>
           val url = mkUrl(wineryId)
           val time = Instant.now
-          ClientJson.getJson(url, proxy, port)
+          MyHttpClient.getJson(url, proxy, port)
             .flatMap {
-              case JsonOk(json) => Future {
+              case OK(json) => Future {
                 val wines = JsonUtil.fromJson[Wines](json)
                 val winesCount = wines.wines.length
                 val filename = mkSaveFilename(wineryId, winesCount)

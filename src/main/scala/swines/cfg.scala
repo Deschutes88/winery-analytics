@@ -7,36 +7,39 @@ object cfg {
 
   object wines {
     val warehouse = c.getString("wines.warehouse")
-
     object scrapper {
-
       object wineryIds {
         val start = c.getInt("wines.scraper.winery-ids.start")
         val stop = c.getInt("wines.scraper.winery-ids.stop")
       }
-
       val parallelizm = c.getInt("wines.scraper.parallelizm")
     }
-
     object exportTsv {
       val saveTo = c.getString("wines.export-tsv.save-to")
       val parallelizm = c.getInt("wines.scraper.parallelizm")
     }
+  }
 
+  object addresses {
+    val warehouse = c.getString("addresses.warehouse")
+    object scraper {
+      val parallelizm = c.getInt("addresses.scraper.parallelizm")
+    }
+    object exportTsv {
+      val saveTo = c.getString("addresses.export-tsv.save-to")
+      val parallelizm = c.getInt("addresses.scraper.parallelizm")
+    }
   }
 
   object reviews {
     val warehouse = c.getString("reviews.warehouse")
-
     object scrapper {
       val parallelizm = c.getInt("reviews.scraper.parallelizm")
     }
-
     object exportTsv {
       val saveTo = c.getString("reviews.export-tsv.save-to")
       val parallelizm = c.getInt("reviews.scraper.parallelizm")
     }
-
   }
 
   object prices {
@@ -44,13 +47,10 @@ object cfg {
     object scrapper {
       val parallelizm = c.getInt("prices.scraper.parallelizm")
     }
-
     object exportTsv {
       val saveTo = c.getString("prices.export-tsv.save-to")
       val parallelizm = c.getInt("prices.scraper.parallelizm")
     }
-
-
   }
 
   object checkProxies {

@@ -9,8 +9,8 @@ import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.{Sink, Source}
 import com.typesafe.scalalogging.Logger
 import swines.data.WineVintages
-import swines.proxies.{ClientJson, Proxies}
-import swines.proxies.ClientJson.{BadResponse, Error, JsonOk}
+import swines.proxies.{MyHttpClient, Proxies}
+import swines.proxies.MyHttpClient.{BadResponse, Error, OK}
 import swines.reviews.SavedWineWintages
 import swines.{cfg}
 
@@ -67,9 +67,9 @@ object ScrapPrices {
       .mapAsyncUnordered(cfg.prices.scrapper.parallelizm) { case (review, (proxy, port)) =>
         val url = "https://www.vivino.com/api/prices?" + review.vintagesIds.map { vintage => s"vintage_ids[]=$vintage" }.mkString("&")
         val wineId = review.wineId
-        ClientJson.getJson(url, proxy, port)
+        MyHttpClient.getJson(url, proxy, port)
           .map {
-            case JsonOk(json) =>
+            case OK(json) =>
               Future {
                 val fname = mkSaveFilename(wineId)
                 val p = Paths.get(fname)

@@ -33,7 +33,7 @@
         <file>price-scraper-.log</file>
         <append>false</append>
         <encoder>
-            <pattern>%level{-5}\t%msg%n</pattern>
+            <pattern>%-5level\t%msg%n</pattern>
             <!--<pattern>%date %level [%thread] %logger{10} [%file:%line] %msg%n</pattern>-->
         </encoder>
     </appender>
@@ -49,7 +49,7 @@
         <append>false</append>
         <encoder>
 
-            <pattern>%level{-5}\t%msg%n</pattern>
+            <pattern>%-5level\t%msg%n</pattern>
             <!--<pattern>%date %level [%thread] %logger{10} [%file:%line] %msg%n</pattern>-->
         </encoder>
     </appender>
@@ -59,11 +59,26 @@
     </logger>
     <!--***********************************************************************-->
     <!--***********************************************************************-->
+    <appender name="addresses.CreateTSV" class="ch.qos.logback.core.FileAppender">
+        <file>addresses-create-tsv-.log</file>
+        <append>false</append>
+        <encoder>
+
+            <pattern>%-5level\t%msg%n</pattern>
+            <!--<pattern>%date %level [%thread] %logger{10} [%file:%line] %msg%n</pattern>-->
+        </encoder>
+    </appender>
+    <logger name="addresses.CreateTSV" level="info" additivity="false">
+        <appender-ref ref="addresses.CreateTSV"/>
+        <appender-ref ref="STDOUT"/>
+    </logger>
+    <!--***********************************************************************-->
+    <!--***********************************************************************-->
     <appender name="reviews.CreateTSV" class="ch.qos.logback.core.FileAppender">
         <file>reviews-create-tsv-.log</file>
         <append>false</append>
         <encoder>
-            <pattern>%level{-5}\t%msg%n</pattern>
+            <pattern>%-5level\t%msg%n</pattern>
             <!--<pattern>%date %level [%thread] %logger{10} [%file:%line] %msg%n</pattern>-->
         </encoder>
     </appender>
@@ -78,7 +93,7 @@
         <file>prices-create-tsv-.log</file>
         <append>false</append>
         <encoder>
-            <pattern>%level{-5}\t%msg%n</pattern>
+            <pattern>%-5level\t%msg%n</pattern>
             <!--<pattern>%date %level [%thread] %logger{10} [%file:%line] %msg%n</pattern>-->
         </encoder>
     </appender>
@@ -103,7 +118,7 @@
         <file>wines-scraper-.log</file>
         <append>true</append>
         <encoder>
-            <pattern>%level{-5}\t%msg%n</pattern>
+            <pattern>%-5level\t%msg%n</pattern>
             <!--<pattern>%date %level [%thread] %logger{10} [%file:%line] %msg%n</pattern>-->
         </encoder>
     </appender>
@@ -118,7 +133,7 @@
         <file>reviews-scraper-.log</file>
         <append>false</append>
         <encoder>
-            <pattern>%level{-5}\t%msg%n</pattern>
+            <pattern>%-5level\t%msg%n</pattern>
             <!--<pattern>%date %level [%thread] %logger{10} [%file:%line] %msg%n</pattern>-->
         </encoder>
     </appender>

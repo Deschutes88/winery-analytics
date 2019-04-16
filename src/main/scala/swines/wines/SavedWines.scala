@@ -11,10 +11,11 @@ import com.typesafe.scalalogging.Logger
 import swines.cfg
 
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.matching.Regex
 
 object SavedWines {
   private val log = Logger("WinesScraper")
-   val isWineFile = "^.*[\\\\\\/]?wines-(\\d+)-(\\d+)-(\\d+)-?.json$".r
+  val isWineFile: Regex = "^.*[\\\\\\/]?wines-(\\d+)-(\\d+)-(\\d+)-\\.json$".r
   private val notFoundLogStr = "^.*Bad response\\(404 Not Found\\) wineryId\\=\\[(\\d+)\\].*$".r
 
 
@@ -34,7 +35,7 @@ object SavedWines {
         }
         .runWith(Sink.seq)
         .map(_.toSet)
-        .map { s => log.info(s"${s.size} ids with bad response are read from log"); s }
+        .map { s => log.info(s"${s.size} ids with bad response (Not Found) are read from log"); s }
 
     val savedWineryIdsF: Future[Set[Int]] =
       Directory.ls(Paths.get(cfg.wines.warehouse))
@@ -54,7 +55,7 @@ object SavedWines {
       val idsRange = Range(start, stop + 1).toList
       val excludeIds = savedIds ++ badRespIds
       val idsToScrap = idsRange.filterNot(excludeIds)
-      log.info(s"savedIds=${savedIds.size} badResponseIs=${badRespIds.size} excludeIds=${excludeIds.size}")
+      log.info(s"savedIds=${savedIds.size} NotFoundIds=${badRespIds.size} excludeIds=${excludeIds.size}")
       log.info(s"Found ${idsToScrap.length} ids to scrap for winery ids in [$start..$stop]")
       idsToScrap
     }
